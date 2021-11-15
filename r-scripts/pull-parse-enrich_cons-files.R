@@ -7,7 +7,7 @@
 
 # Start-up ----
 rm(list = ls()); invisible(gc());
-require(tidyverse)
+suppressPackageStartupMessages(require(tidyverse, quietly = TRUE))
 require(magrittr)
 require(httr)
 
@@ -33,6 +33,7 @@ header.cons_alt = toupper(header.cons_alt)
 
 # Pull & Process OFAC SDN File ----
 # Pull CSV Data-File 
+# TODO add tryCatch read using httr
 cons.prim = suppressWarnings(RCurl::getURL("https://www.treasury.gov/ofac/downloads/consolidated/cons_prim.csv",
                                          ssl.verifyhost=FALSE, ssl.verifypeer=FALSE) %>%
                              read_csv(file = ., col_names = header.cons,
@@ -95,6 +96,7 @@ rm(program_mappings, i)
 # ... Downstream processing applies regional encodings
 
 # Pull CSV Data-File 
+# TODO add tryCatch read using httr
 cons.add = suppressWarnings(RCurl::getURL("https://www.treasury.gov/ofac/downloads/consolidated/cons_add.csv",
                                          ssl.verifyhost=FALSE, ssl.verifypeer=FALSE) %>%
                              read_csv(file = ., col_names = header.cons_add,
@@ -112,34 +114,46 @@ cons.add = cons.add %>%
 
 # > Region-Encoding
 # Get country codes from github. ISO-3166 standard.
-country_codes = RCurl::getURL("https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv") %>% 
-  read_csv(file = ., col_names = TRUE, col_types = cols(.default = "c"), trim_ws = TRUE, na = "")
+country_codes.path = "https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv"
+country_codes = tryCatch(expr = {RCurl::getURL(country_codes.path)}, 
+                         error = function(e){httr::GET(url = country_codes.path) %>% 
+                             httr::content()}
+) %>% 
+  read_csv(file = ., col_names = TRUE, col_types = cols(.default = "c"), trim_ws = TRUE, na = "") %>% 
+  janitor::clean_names()
 
 # Fix country-naming differences between the dfs
 # ... based on manually compiled patch-file "~/country_name_fix.csv"
 setdiff(levels(cons.add$COUNTRY), country_codes$name) # ptc mis-matches
 country_codes$alt_name = country_codes$name
-country_name_fix = read_csv("datarepo/reference-files/country_name_fix.csv", na = "", 
+country_name_fix = read_csv("ref-files/country_name_fix.csv", na = "", 
                             col_names = TRUE, trim_ws = TRUE, 
                             col_types = cols(.default = col_character())
 )
+ 
 country_codes$alt_name[country_codes$alt_name %in% country_name_fix$iso_name] = 
   country_name_fix$ofac_name[match(country_codes$alt_name[country_codes$alt_name %in% country_name_fix$iso_name], 
                                    country_name_fix$iso_name)]
 
-country_codes %>% filter(is.na(alt_name)) # ptc, should return 0-row tibble; otherwise add entry to "country_name_fix.csv"
+assertthat::assert_that({
+  # check to ensure there are no new mis-matches; patch reference file if necessary.
+  (country_codes %>% filter(is.na(alt_name)) %>% nrow()) == 0L
+},
+msg = '"country_codes$alt_name" has NAs. Add entries to "country_name_fix.csv" to fix.')
+
 
 
 # Join ISO-table Info to SDN ADD df
 cons.add = cons.add %>% 
   left_join(x = ., y = country_codes,
             by = c("COUNTRY" = "alt_name")) %>% 
-  filter(!is.na(`alpha-2`)) # drop records that could not be enriched
+  filter(!is.na(alpha_2)) # drop records that could not be enriched
 
 # Clean-up
 rm(country_codes, country_name_fix)
 
 # Pull and Process OFAC CONS ALT File ----
+# TODO add tryCatch read using httr
 cons.alt = suppressWarnings(RCurl::getURL("https://www.treasury.gov/ofac/downloads/consolidated/cons_alt.csv",
                                          ssl.verifyhost=FALSE, ssl.verifypeer=FALSE) %>%
                              read_csv(file = ., col_names = header.cons_alt,
@@ -162,7 +176,8 @@ cons.alt = cons.alt %>%
 # Export binary of output files ----
 cons.timestamp = Sys.time() # timestamp when data was sourced
 
-save(cons.timestamp, cons.prim, cons.add, cons.alt, program_catalog.cons, file = "datarepo/cons_files_parsed.RData", version = 3)
+save(cons.timestamp, cons.prim, cons.add, cons.alt, program_catalog.cons, file = "run-files/cons_files_parsed.RData", version = 3)
+closeAllConnections()
 rm(list = ls()); invisible(gc())
 
 
