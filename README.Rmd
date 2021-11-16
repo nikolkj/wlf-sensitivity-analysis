@@ -1,0 +1,28 @@
+---
+title: 'README: wlf-sensitivity-analysis'
+author: "Nikolai Priser"
+date: "11/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Project Directories
+
+-   '**proj/r-scripts/**': executable scripts for the project; write transient output to 'proj/run-files/'.
+
+-   '**proj/ref-files/**': reference files that must be manually maintained unless explicitly specified.
+
+-   '**proj/run-files/**': landing location for transient output during script execution.
+
+### Execution Order
+
+1.  **pull-parse-enrich_sdn-files.R**\
+    Pulls OFAC SDN data, enriches geographic data and writes output to 'proj/run-files/'
+
+2.  **pull-parse-enrich_cons-files.R**\
+    Pulls OFAC CONS data, enriches geographic data and writes output to 'proj/run-files/'
+
+3.  
