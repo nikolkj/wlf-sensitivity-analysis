@@ -1,23 +1,23 @@
 # Source Checks ----
 # TODO: 'header check' should be generalized if using more than just OFAC SDN and CONS lists
 
-# Check in packages loaded
-# TODO:^
-
-# parameter check
-assertthat::assert_that("param.drop_middle_names" %in% ls(pattern = "^param"), msg = "parameter missing: param.drop_middle_names")
-assertthat::assert_that("param.ignore_alt_names" %in% ls(pattern = "^param"), msg = "parameter missing: param.ignore_alt_names")
-assertthat::assert_that(length(ls(pattern = "^param\\.apply_drop_tokens")) == 2L, msg = "parameters missing: param.apply_drop_tokens_*") 
-
-# dataset check
-assertthat::assert_that(length(ls(pattern = "\\.prim$")) == 2L, msg = "data missing: watchlist main name data; check ls().")
-assertthat::assert_that(length(ls(pattern = "\\.alt$")) == 2L, msg = "data missing: watchlist aka name data; check ls().")
-assertthat::assert_that(length(ls(pattern = "\\.add$")) == 2L, msg = "data missing: watchlist address data; check ls().")
-
-# header check
-assertthat::assert_that(are_equal(names(sdn.prim), names(cons.prim)), msg = "somethings wrong with the headers.") 
-assertthat::assert_that(are_equal(names(sdn.alt), names(cons.alt)), msg = "somethings wrong with the headers.") 
-assertthat::assert_that(are_equal(names(sdn.add), names(cons.add)), msg = "somethings wrong with the headers.")
+# # Check in packages loaded
+# # TODO:^
+# 
+# # parameter check
+# assertthat::assert_that("param.drop_middle_names" %in% ls(pattern = "^param"), msg = "parameter missing: param.drop_middle_names")
+# assertthat::assert_that("param.ignore_alt_names" %in% ls(pattern = "^param"), msg = "parameter missing: param.ignore_alt_names")
+# assertthat::assert_that(length(ls(pattern = "^param\\.apply_drop_tokens")) == 2L, msg = "parameters missing: param.apply_drop_tokens_*") 
+# 
+# # dataset check
+# assertthat::assert_that(length(ls(pattern = "\\.prim$")) == 2L, msg = "data missing: watchlist main name data; check ls().")
+# assertthat::assert_that(length(ls(pattern = "\\.alt$")) == 2L, msg = "data missing: watchlist aka name data; check ls().")
+# assertthat::assert_that(length(ls(pattern = "\\.add$")) == 2L, msg = "data missing: watchlist address data; check ls().")
+# 
+# # header check
+# assertthat::assert_that(are_equal(names(sdn.prim), names(cons.prim)), msg = "somethings wrong with the headers.") 
+# assertthat::assert_that(are_equal(names(sdn.alt), names(cons.alt)), msg = "somethings wrong with the headers.") 
+# assertthat::assert_that(are_equal(names(sdn.add), names(cons.add)), msg = "somethings wrong with the headers.")
 
 # Deg: Concatenations ----
 # ABOUT: Remove all spaces from the original name
@@ -34,7 +34,9 @@ dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$te
 # TODO ^
 
 # sample
-# TODO ^
+dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>% 
+  sample_degradations_simple(df = .) %>% 
+  dat[.,]
 
 
 # Deg: Symbol Stripping ----
@@ -84,7 +86,9 @@ dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$te
 # TODO ^
 
 # sample
-# TODO ^
+dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>% 
+  sample_degradations_simple(df = .) %>% 
+  dat[.,]
 
 
 # Deg: Random Word Truncation ----
@@ -147,7 +151,9 @@ dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$te
 # TODO ^
 
 # sample
-# TODO ^
+dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>% 
+  sample_degradations_simple(df = .) %>% 
+  dat[.,]
 
 
 # Deg: Random Token Drop ----
@@ -221,6 +227,7 @@ dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$te
 # TODO ^
 
 # sample
-# TODO ^
-
+dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>% 
+  sample_degradations_simple(df = .) %>% 
+  dat[.,]
 
