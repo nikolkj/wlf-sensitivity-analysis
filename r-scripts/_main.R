@@ -8,21 +8,9 @@ require(magrittr, quietly = TRUE)
 require(httr, quietly = TRUE)
 require(assertthat, quietly = TRUE)
 
-# User Defined Parameters ----
-param.demo_mode = TRUE # demo run with degs and output analysis
-param.ignore_alt_names = TRUE
-param.drop_middle_names = TRUE
-param.apply_drop_tokens_entities = FALSE # see 'ref-files/drop-tokens_entities.txt'
-param.apply_drop_tokens_individuals = TRUE # see 'ref-files/drop-tokens_individuals.txt'
-param.apply_fml = TRUE # reorganize individual names to first-middle-last format
-
-# param. TODO
-
-
-# Run Helpers ----
-# source("scripts/helper-funcs.R") TODO 
-
 # Grab data ----
+param.demo_mode = FALSE # demo run with degs and output analysis
+
 # Pull copies of current OFAC data-files, parse and prep
 if(param.demo_mode &
    length(dir(path = "run-files/", pattern = "(_parsed.RData)") > 1L)){
@@ -38,6 +26,19 @@ if(param.demo_mode &
 # Load prepared data
 load(file = "run-files/sdn_files_parsed.RData")
 load(file = "run-files/cons_files_parsed.RData")
+
+# User Defined Parameters ----
+param.ignore_alt_names = TRUE
+param.drop_middle_names = TRUE
+param.apply_drop_tokens_entities = FALSE # see 'ref-files/drop-tokens_entities.txt'
+param.apply_drop_tokens_individuals = TRUE # see 'ref-files/drop-tokens_individuals.txt'
+param.apply_fml = TRUE # reorganize individual names to first-middle-last format
+
+# param. TODO
+
+
+# Run Helpers ----
+# source("scripts/helper-funcs.R") TODO 
 
 # Prep data ----
 # Make source data-frame for degradation creation
