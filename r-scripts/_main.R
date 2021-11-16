@@ -12,8 +12,9 @@ require(assertthat, quietly = TRUE)
 param.demo_mode = TRUE # demo run with degs and output analysis
 param.ignore_alt_names = TRUE
 param.drop_middle_names = TRUE
-param.apply_drop_tokens_entities = TRUE # see 'ref-files/drop-tokens_entities.txt'
+param.apply_drop_tokens_entities = FALSE # see 'ref-files/drop-tokens_entities.txt'
 param.apply_drop_tokens_individuals = TRUE # see 'ref-files/drop-tokens_individuals.txt'
+param.apply_fml = TRUE # reorganize individual names to first-middle-last format
 
 # param. TODO
 
@@ -43,12 +44,12 @@ load(file = "run-files/cons_files_parsed.RData")
 prim = bind_rows(sdn.prim, cons.prim) # merge 'prim' tbls
 if(param.ignore_alt_names){
   # take only primary names
-  dat = prim
+  raw = prim
   rm(prim)
 }else{
   # take primary and alternative (aka) names
   # TODO: Align headers between 'prim' and 'alt' tbls
-  dat = bind_rows(prim, sdn.alt, cons.alt)
+  raw = bind_rows(prim, sdn.alt, cons.alt)
 }
 
 rm(list = c(ls(pattern = "\\.prim"), ls(pattern = "\\.alt")))
@@ -61,18 +62,22 @@ rm(list = c(ls(pattern = "\\.prim"), ls(pattern = "\\.alt")))
 
 
 # Apply drop tokens: Entities
+# TODO: currently results in superflous dropping 
+# ... e.g. 'CASA DE CUBA' --> 'CA DE CUBA'
+# ... via 'S.A.' entry
 if(param.apply_drop_tokens_entities){
   ignore_tokens = readLines(con = "ref-files/drop-tokens_entities.txt", warn = FALSE) # read ref file
   
   if(length(ignore_tokens) > 0L){
-    temp = dat$SDN_NAME
+    temp = raw$SDN_NAME
     for(i in seq_along(ignore_tokens)){
       # TODO: make this loop an *apply
       temp = str_remove(string = temp, pattern = fixed(ignore_tokens[i], ignore_case = TRUE))
     }
     
-    ignore_tokens.select = which(dat$SDN_TYPE == "entity")
-    dat$SDN_NAME[ignore_tokens.select] = temp[ignore_tokens.select]
+    ignore_tokens.select = which(raw$SDN_TYPE == "entity")
+    raw$prepd_name = raw$SDN_NAME
+    raw$prepd_name[ignore_tokens.select] = temp[ignore_tokens.select]
     rm(ignore_tokens, temp, ignore_tokens.select)
   }else{
     warning("'ref-files/drop-tokens_entities.txt' is empty; 'param.apply_drop_tokens_entities' ignored.")
@@ -84,19 +89,28 @@ if(param.apply_drop_tokens_individuals){
   ignore_tokens = readLines(con = "ref-files/drop-tokens_individuals.txt", warn = FALSE) # read ref file
   
   if(length(ignore_tokens) > 0L){
-    temp = dat$SDN_NAME
+    temp = raw$SDN_NAME
     for(i in seq_along(ignore_tokens)){
       # TODO: make this loop an *apply
       temp = str_remove(string = temp, pattern = fixed(ignore_tokens[i], ignore_case = TRUE))
     }
     
-    ignore_tokens.select = which(dat$SDN_TYPE == "individual")
-    dat$SDN_NAME[ignoe_tokens.select] = temp[ignore_tokens.select]
+    ignore_tokens.select = which(raw$SDN_TYPE == "individual")
+    raw$prepd_name = raw$SDN_NAME
+    raw$prepd_name[ignore_tokens.select] = temp[ignore_tokens.select]
     rm(ignore_tokens, temp, ignore_tokens.select)
   }else{
     warning("'ref-files/drop-tokens_entities.txt' is empty; 'param.apply_drop_tokens_individuals' ignored.")
   }
 }
+
+# Apply middle-name drop
+# TODO ^
+# ... apply to [prepd_name]
+
+# Apply fml-formatting for individual names
+# TODO ^
+# ... apply to [prepd_name]
 
 # Make Degradations----
 
