@@ -9,7 +9,7 @@ require(httr, quietly = TRUE)
 require(assertthat, quietly = TRUE)
 
 # Grab data ----
-param.demo_mode = FALSE # demo run with degs and output analysis
+param.demo_mode = TRUE # demo run with degs and output analysis
 
 # Pull copies of current OFAC data-files, parse and prep
 if(param.demo_mode &
@@ -31,14 +31,14 @@ load(file = "run-files/cons_files_parsed.RData")
 param.ignore_alt_names = TRUE
 param.drop_middle_names = TRUE
 param.apply_drop_tokens_entities = FALSE # see 'ref-files/drop-tokens_entities.txt'
-param.apply_drop_tokens_individuals = TRUE # see 'ref-files/drop-tokens_individuals.txt'
+param.apply_drop_tokens_individuals = FALSE # see 'ref-files/drop-tokens_individuals.txt'
 param.apply_fml = TRUE # reorganize individual names to first-middle-last format
 
 # param. TODO
 
 
 # Run Helpers ----
-# source("scripts/helper-funcs.R") TODO 
+source("r-scripts/helper-funcs.R")
 
 # Prep data ----
 # Make source data-frame for degradation creation
@@ -103,6 +103,11 @@ if(param.apply_drop_tokens_individuals){
   }else{
     warning("'ref-files/drop-tokens_entities.txt' is empty; 'param.apply_drop_tokens_individuals' ignored.")
   }
+}
+
+if(!param.apply_drop_tokens_entities & !param.apply_drop_tokens_individuals){
+  # remove this condition once drop_token issues are resolveds
+  raw$prepd_name = raw$SDN_NAME
 }
 
 # Apply middle-name drop
