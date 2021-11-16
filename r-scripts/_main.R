@@ -1,25 +1,103 @@
 # ABOUT --- 
 # Main script file
 
+# Start-up ----
+rm(list = ls()); invisible(gc());
+suppressPackageStartupMessages(require(tidyverse, quietly = TRUE))
+require(magrittr, quietly = TRUE)
+require(httr, quietly = TRUE)
+require(assertthat, quietly = TRUE)
+
 # User Defined Parameters ----
 param.demo_mode = TRUE # demo run with degs and output analysis
+param.ignore_alt_names = TRUE
 param.drop_middle_names = TRUE
+param.apply_drop_tokens_entities = TRUE # see 'ref-files/drop-tokens_entities.txt'
+param.apply_drop_tokens_individuals = TRUE # see 'ref-files/drop-tokens_individuals.txt'
+
 # param. TODO
 
 
-# Start-up ----
+# Run Helpers ----
 # source("scripts/helper-funcs.R") TODO 
 
-# Grab and Prep data ----
+# Grab data ----
 # Pull copies of current OFAC data-files, parse and prep
-source("r-scripts/pull-parse-enrich_sdn-files.R", echo = TRUE)
-source("r-scripts/pull-parse-enrich_cons-files.R", echo = TRUE)
+if(param.demo_mode &
+   length(dir(path = "run-files/", pattern = "(_parsed.RData)") > 1L)){
+  # nada, don't refresh data sets; running in demo mode
+  
+}else{
+  # pull fresh data
+  source("r-scripts/pull-parse-enrich_sdn-files.R", echo = TRUE)
+  source("r-scripts/pull-parse-enrich_cons-files.R", echo = TRUE)
+}
+
 
 # Load prepared data
 load(file = "run-files/sdn_files_parsed.RData")
 load(file = "run-files/cons_files_parsed.RData")
 
-# Make Degradations ---- 
-# TODO 
+# Prep data ----
+# Make source data-frame for degradation creation
+prim = bind_rows(sdn.prim, cons.prim) # merge 'prim' tbls
+if(param.ignore_alt_names){
+  # take only primary names
+  dat = prim
+  rm(prim)
+}else{
+  # take primary and alternative (aka) names
+  # TODO: Align headers between 'prim' and 'alt' tbls
+  dat = bind_rows(prim, sdn.alt, cons.alt)
+}
+
+rm(list = c(ls(pattern = "\\.prim"), ls(pattern = "\\.alt")))
+
+# Apply program filters
+# TODO ^
+
+# Apply country filters
+# TODO ^
+
+
+# Apply drop tokens: Entities
+if(param.apply_drop_tokens_entities){
+  ignore_tokens = readLines(con = "ref-files/drop-tokens_entities.txt", warn = FALSE) # read ref file
+  
+  if(length(ignore_tokens) > 0L){
+    temp = dat$SDN_NAME
+    for(i in seq_along(ignore_tokens)){
+      # TODO: make this loop an *apply
+      temp = str_remove(string = temp, pattern = fixed(ignore_tokens[i], ignore_case = TRUE))
+    }
+    
+    ignore_tokens.select = which(dat$SDN_TYPE == "entity")
+    dat$SDN_NAME[ignore_tokens.select] = temp[ignore_tokens.select]
+    rm(ignore_tokens, temp, ignore_tokens.select)
+  }else{
+    warning("'ref-files/drop-tokens_entities.txt' is empty; 'param.apply_drop_tokens_entities' ignored.")
+  }
+}
+
+# Apply drop tokens: Individuals
+if(param.apply_drop_tokens_individuals){
+  ignore_tokens = readLines(con = "ref-files/drop-tokens_individuals.txt", warn = FALSE) # read ref file
+  
+  if(length(ignore_tokens) > 0L){
+    temp = dat$SDN_NAME
+    for(i in seq_along(ignore_tokens)){
+      # TODO: make this loop an *apply
+      temp = str_remove(string = temp, pattern = fixed(ignore_tokens[i], ignore_case = TRUE))
+    }
+    
+    ignore_tokens.select = which(dat$SDN_TYPE == "individual")
+    dat$SDN_NAME[ignoe_tokens.select] = temp[ignore_tokens.select]
+    rm(ignore_tokens, temp, ignore_tokens.select)
+  }else{
+    warning("'ref-files/drop-tokens_entities.txt' is empty; 'param.apply_drop_tokens_individuals' ignored.")
+  }
+}
+
+# Make Degradations----
 
 
