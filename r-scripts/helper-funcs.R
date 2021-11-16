@@ -67,7 +67,9 @@ gramify = function(string_vec, ngrams = 3L, rolling = TRUE){
   
 }
 
-# Calculate Distances
+# Calculate Distances ----
+# ABOUT: Calculates string distance metrics between two string vectors
+
 # prepd_name = dat$prepd_name # testing, do not run
 # test_name = dat$test_name # testing, do not run
 degDistance = function(prepd_name, test_name){
@@ -106,4 +108,72 @@ degDistance = function(prepd_name, test_name){
                   dist_phon, dist_phon_pcnt)
   
   return(output)
+}
+
+# Sample Degradations ----
+# ABOUT: returns positional indices of observations to keep for sample 
+
+sample_degradations_simple = function(df, cut_off = 0.05, n_p_samples = 0.35){
+  assertthat::is.number(cut_off)
+  assertthat::assert_that(cut_off < .5, msg = "cut-off is applied to both ends of the distribution; must be < 0.5.")
+  if(cut_off > 0.15){
+    warning(paste0("Large cut-off warning; you are dropping ", round(cut_off*200, 2), "% of the population before sampling!"))
+  }
+
+  df = select_if(.tbl = df, .predicate = is.numeric) # keep only numeric fields
+  df = df %>% 
+    scale() %>%
+    as_tibble() 
+  
+  df.dim = dim(df)
+  
+  df = select(.data = df, -caret::nzv(df)) # drop near zero-var features
+  
+  df.pca = prcomp(df)
+  df.pca.cvp = factoextra::get_eig(df.pca)$cumulative.variance.percent
+  
+  if(df.pca.cvp[1] > 0.9){
+    # use PC1 ONLY to sample if it explains >90% of variance
+    keep = tibble(PC1 = df.pca$x[,1])
+    keep$index = c(1:nrow(keep)) # sample position index
+    keep = keep %>% arrange(PC1, "desc")
+    
+  }else{
+    # use PC1 and PC2
+    # ... based on euclidean distance from (0,0)
+    if(df.pca.cvp[2] < .90){
+      warning("PC1 and PC2 describe less that 90% of observed variance; alternative sampling recommended.")
+    }
+    keep = tibble(PC1 = df.pca$x[,1], 
+                  PC2 = df.pca$x[,2])
+    keep$dist = sqrt(keep$PC1^2 + keep$PC2^2)
+    keep$index = c(1:nrow(keep)) # sample position index
+    keep = keep %>% arrange(dist, "desc")
+    
+  }
+  
+  keep.cut_off = floor(nrow(keep) * c(cut_off, 1-cut_off))
+  keep = keep %>%
+    filter(index > keep.cut_off[1] & index < keep.cut_off[2]) %$% # hard cut-off
+    index
+  
+  # df = df[sort(keep),] # preserve order
+  
+  # generate random sample
+  if(n_p_samples < 1){
+    # interpret as percentage, based on pre cut-off count
+    keep = tibble(keep) %>% 
+      sample_frac(tbl = ., size = n_p_samples) %$% 
+      keep
+    
+  }else{
+    # interpret as count
+    if(n_p_samples > df.dim[1]){n_p_samples = df.dim[1]}
+    keep = tibble(keep) %>% 
+      sample_n(tbl = ., size = n_p_samples) %$% 
+      keep
+  }
+  
+  return(keep)
+  
 }
