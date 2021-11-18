@@ -28,6 +28,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
+deg$scenario = "concat"
 deg = c(deg, list(dat)) 
 
 # Deg: Sticky Tokens ----
@@ -65,6 +66,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
+deg$scenario = "sticky-tokens"
 deg = c(deg, list(dat)) 
 
 # Deg: Symbol Stripping ----
@@ -105,6 +107,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
+deg$scenario = "stripping"
 deg = c(deg, list(dat)) 
 
 # Deg: Long Name Truncation ----
@@ -127,6 +130,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
+deg$scenario = "long-names"
 deg = c(deg, list(dat)) 
 
 # Deg: Random Word Truncation ----
@@ -200,6 +204,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
+deg$scenario = "rand-trunc"
 deg = c(deg, list(dat)) 
 
 # Deg: Random Token Drop ----
@@ -284,4 +289,5 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
+deg$scenario = "rand-drop"
 deg = c(deg, list(dat)) 
