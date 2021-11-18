@@ -1,3 +1,5 @@
+# ABOUT: Degradation Scenarios applicable to all names
+
 # Source Checks ----
 # TODO: 'header check' should be generalized if using more than just OFAC SDN and CONS lists
 
@@ -24,6 +26,9 @@ dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$te
 dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>% 
   sample_degradations_simple(df = .) %>% 
   dat[.,]
+
+# archive
+deg = c(deg, list(dat)) 
 
 # Deg: Sticky Tokens ----
 # ABOUT: Remove all spaces from the original name
@@ -59,6 +64,8 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   sample_degradations_simple(df = .) %>% 
   dat[.,]
 
+# archive
+deg = c(deg, list(dat)) 
 
 # Deg: Symbol Stripping ----
 # ABOUT: Replaces alphabetic characters with visually similar symbolics
@@ -93,8 +100,12 @@ dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$te
 # TODO ^
 
 # sample
-# TODO ^
+dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>% 
+  sample_degradations_simple(df = .) %>% 
+  dat[.,]
 
+# archive
+deg = c(deg, list(dat)) 
 
 # Deg: Long Name Truncation ----
 # ABOUT: Truncate long-names to 35 characters
@@ -115,6 +126,8 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   sample_degradations_simple(df = .) %>% 
   dat[.,]
 
+# archive
+deg = c(deg, list(dat)) 
 
 # Deg: Random Word Truncation ----
 # ABOUT: Randomly Truncates Tokens
@@ -186,6 +199,8 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   sample_degradations_simple(df = .) %>% 
   dat[.,]
 
+# archive
+deg = c(deg, list(dat)) 
 
 # Deg: Random Token Drop ----
 # ABOUT: Drop random words from the name
@@ -268,4 +283,5 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   sample_degradations_simple(df = .) %>% 
   dat[.,]
 
-
+# archive
+deg = c(deg, list(dat)) 
