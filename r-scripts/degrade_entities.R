@@ -20,7 +20,12 @@ for(i in seq_along(business_designations)){
   dat$test_name = str_remove(string = dat$test_name, pattern = fixed(business_designations[i]))
 }
 
-dat = dat[-which(dat$prepd_name == dat$test_name),] # drop un-altered names
+# drop un-altered names
+dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
+
 
 # calculate distances
 dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$test_name))
@@ -91,7 +96,13 @@ for(i in seq_along(dat$prepd_name)){
   dat$test_name[i] = str_replace(string = dat$test_name[i], pattern = fixed(designation_match), replacement = fixed(designation_match.replacement))
   
 }
-dat = dat[-which(dat$prepd_name == dat$test_name),] # drop un-altered names
+
+# drop un-altered names
+dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
+
 
 # calculate distances
 dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$test_name))
@@ -231,7 +242,12 @@ for(i in seq_along(dat$prepd_name)){
   
 }
 rm(list = ls(pattern = "designation_match")) # clean-up
-dat = dat[-which(dat$prepd_name == dat$test_name),] # drop un-altered names
+
+# drop un-altered names
+dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
 
 # calculate distances
 dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$test_name))
