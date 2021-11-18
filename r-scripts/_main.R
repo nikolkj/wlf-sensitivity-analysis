@@ -9,12 +9,12 @@ require(httr, quietly = TRUE)
 require(assertthat, quietly = TRUE)
 
 # Grab data ----
-param.demo_mode = TRUE # demo run with degs and output analysis
+param.refesh_watchlists = TRUE # ignored if RData files not found
 
 # Pull copies of current OFAC data-files, parse and prep
-if(param.demo_mode &
+if(param.refesh_watchlists &
    length(dir(path = "run-files/", pattern = "(_parsed.RData)") > 1L)){
-  # nada, don't refresh data sets; running in demo mode
+  # nada, don't refresh data sets;
   
 }else{
   # pull fresh data
@@ -27,6 +27,7 @@ load(file = "run-files/sdn_files_parsed.RData")
 load(file = "run-files/cons_files_parsed.RData")
 
 # User Defined Parameters ----
+param.demo_mode = TRUE # demo run with degs and output analysis
 param.ignore_alt_names = TRUE
 param.apply_fml = TRUE # reorganize individual names to first-middle-last format
 param.drop_middle_names = TRUE
@@ -90,7 +91,7 @@ if(param.apply_fml | param.drop_middle_names){
   
 }
 
-raw$prepd_name[match(raw$ENT_NUM, indiv_split$name)] = indiv_split$name[match(raw$ENT_NUM, indiv_split$name)] # replace edited names
+raw$prepd_name[match(indiv_split$ENT_NUM, raw$ENT_NUM)] = indiv_split$name # replace edited names
 rm(indiv_split)
 
 # Apply program filters
@@ -115,21 +116,65 @@ source("r-scripts/degrade_entities.R", echo = TRUE)
 # source("r-scripts/degrade_aircraft.R") # TODO 
 # source("r-scripts/degrade_vessels.R") # TODO 
 
-# write to shiny-app 'data/' dir
-deg = deg %>% bind_rows() %>% mutate(deg_index = row_number())
-write_rds(x = deg, file = "run-files/degradation_rndm_smpl.rds")
-file.copy(from = "run-files/degradation_rndm_smpl.rds", "shiny_benchmark-expectations/data/degradation_rndm_smpl.rds")
 
-# write to xlsx for manual adjudication
-deg = deg %>% 
-  select(ENT_NUM, deg_index, prepd_name, test_name) %>% 
-  mutate(sort_order = sample(c(1:nrow(deg)))) %>% 
-  arrange(desc(sort_order)) %>% 
-  select(-sort_order)
+deg = bind_rows(deg) 
+if(any(trimws(deg$test_name) = "")){
+  warning("Heads up, some of your scenario produced empty-string degradations. They're being dropped.")
+  deg = deg %>% 
+    fitler(trimws(test_name) != "")
+} 
 
-writexl::write_xlsx(deg, path = paste0("run-files/degradation_rndm_smpl_",as.numeric(Sys.time()), ".xlsx"))
+deg = mutate(.data = deg,deg_index = row_number()) # index degradations
+
+# Write to Degradations to Input-file -----
+# ABOUT: Should be 
+
+
+# temp
+
+  
+# Prep Data for Performance Expectation Modeling ----
+# # write to shiny-app 'data/' dir
+
+# write_rds(x = deg, file = "run-files/degradation_rndm_smpl.rds")
+# file.copy(from = "run-files/degradation_rndm_smpl.rds", "shiny_benchmark-expectations/data/degradation_rndm_smpl.rds")
+# 
+# # write to xlsx for manual adjudication
+# deg = deg %>% 
+#   select(ENT_NUM, deg_index, prepd_name, test_name) %>% 
+#   mutate(sort_order = sample(c(1:nrow(deg)))) %>% 
+#   arrange(desc(sort_order)) %>% 
+#   select(-sort_order)
+# 
+# writexl::write_xlsx(deg, path = paste0("run-files/degradation_rndm_smpl_",as.numeric(Sys.time()), ".xlsx"))
+
+# ---- EVERYTHING BELOW HERE SHOULD BE IN A SEPERATE SCRIPT -----
+# ^ excludes demo-code 
+
 # Model Performance Expectations ----
+# TODO ^ 
 
-
+# Simulate Model Output
+# About: In production, there would be engine for parsing 
+# ... model output (e.g. from actimize or prime) 
+# .... matching inputs and outputs
+# .... decisioning false-positive and true-positive matches
+# .... and staging data for sensitivity analysis
+#
+if(param.demo_mode){
+  
+  
+  
+  
+  
+}else{
+  # TODO : Production Parsing Functions/Scripts 
+}
 
 # Model Sensitivity ----
+if(param.demo_mode){
+  
+}else{
+  # TODO : Production Analysis Functions/Scripts
+
+}
