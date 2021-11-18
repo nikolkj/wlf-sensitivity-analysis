@@ -1,31 +1,52 @@
 # Source Checks ----
 # TODO: 'header check' should be generalized if using more than just OFAC SDN and CONS lists
 
-# # Check in packages loaded
-# # TODO:^
-# 
-# # parameter check
-# assertthat::assert_that("param.drop_middle_names" %in% ls(pattern = "^param"), msg = "parameter missing: param.drop_middle_names")
-# assertthat::assert_that("param.ignore_alt_names" %in% ls(pattern = "^param"), msg = "parameter missing: param.ignore_alt_names")
-# assertthat::assert_that(length(ls(pattern = "^param\\.apply_drop_tokens")) == 2L, msg = "parameters missing: param.apply_drop_tokens_*") 
-# 
-# # dataset check
-# assertthat::assert_that(length(ls(pattern = "\\.prim$")) == 2L, msg = "data missing: watchlist main name data; check ls().")
-# assertthat::assert_that(length(ls(pattern = "\\.alt$")) == 2L, msg = "data missing: watchlist aka name data; check ls().")
-# assertthat::assert_that(length(ls(pattern = "\\.add$")) == 2L, msg = "data missing: watchlist address data; check ls().")
-# 
-# # header check
-# assertthat::assert_that(are_equal(names(sdn.prim), names(cons.prim)), msg = "somethings wrong with the headers.") 
-# assertthat::assert_that(are_equal(names(sdn.alt), names(cons.alt)), msg = "somethings wrong with the headers.") 
-# assertthat::assert_that(are_equal(names(sdn.add), names(cons.add)), msg = "somethings wrong with the headers.")
-
 # Deg: Concatenations ----
 # ABOUT: Remove all spaces from the original name
 dat = raw
 
 # apply degradation
 dat$test_name = gsub(pattern = "\\s+", replacement = "", x = dat$prepd_name)
-dat = dat[-which(dat$prepd_name == dat$test_name),] # drop un-altered names
+
+# drop un-altered names
+dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
+
+# calculate distances
+dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$test_name))
+
+# calculate metrics (e.g. original name length)
+# TODO ^
+
+# sample
+dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>% 
+  sample_degradations_simple(df = .) %>% 
+  dat[.,]
+
+# Deg: Sticky Tokens ----
+# ABOUT: Remove all spaces from the original name
+dat = raw
+dat = dat[str_detect(string = dat$prepd_name, pattern = " "),] # drop single token names
+
+# apply degradation
+dat$test_name = sapply(seq(1:length(dat$prepd_name)), function(x){
+  name = dat$prepd_name[x]
+  spn  = str_count(name ,"\\s+") # Count Spaces
+  spn.select = sample(c(1:(spn-1)), size = 1) # Randomly select number of spaces to drop, do not drop all
+  
+  spn.pos = str_locate_all(name ,"\\s+") # Find Spaces
+  spn.pos = spn.pos[[1]][sample(c(1:spn), size = spn.select),1] # Select which spaces to clip
+  
+  return( paste(str_split(string = name, pattern = "", simplify = TRUE)[1, -spn.pos], collapse = "") )
+})  
+
+# drop un-altered names
+dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
 
 # calculate distances
 dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$test_name))
@@ -59,7 +80,11 @@ dat$test_name = sapply(dat$prepd_name, function(name){
   
 })
 
-dat = dat[-which(dat$prepd_name == dat$test_name),] # drop un-altered names
+# drop un-altered names
+dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
 
 # calculate distances
 dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$test_name))
@@ -141,7 +166,13 @@ for(i in seq_along(test_name)){
 }
 
 dat$test_name = sapply(test_name, paste, collapse = " ")
-dat = dat[-which(dat$prepd_name == dat$test_name),] # drop un-altered names
+
+# drop un-altered names
+dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
+
 rm(trunc_token, i, j, test_name, trunc_flag, prob_default_trunc, test_name_len) # clean-up
 
 # calculate distances
@@ -217,7 +248,13 @@ for(i in seq_along(test_name)){
 }
 
 dat$test_name = sapply(test_name, paste, collapse = " ")
-dat = dat[-which(dat$prepd_name == dat$test_name),] # drop un-altered names
+
+# drop un-altered names
+dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
+
 rm(i, test_name, drop_flag, prob_default_drop, test_name_len) # clean-up
 
 # calculate distances
@@ -230,4 +267,5 @@ dat = bind_cols(dat, degDistance(prepd_name = dat$prepd_name, test_name = dat$te
 dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>% 
   sample_degradations_simple(df = .) %>% 
   dat[.,]
+
 
