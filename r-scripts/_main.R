@@ -31,9 +31,6 @@ param.ignore_alt_names = TRUE
 param.apply_fml = TRUE # reorganize individual names to first-middle-last format
 param.drop_middle_names = TRUE
 
-# param. TODO
-
-
 # Run Helpers ----
 source("r-scripts/helper-funcs.R")
 
@@ -52,7 +49,7 @@ if(param.ignore_alt_names){
 
 rm(list = c(ls(pattern = "\\.prim"), ls(pattern = "\\.alt")))
 
-raw$SDN_NAME = trimws(raw$SDN_NAME)
+raw$SDN_NAME = str_squish(raw$SDN_NAME)
 raw$prepd_name = raw$SDN_NAME
 raw = raw %>% # drop unused field
   select(-c(TITLE, CALL_SIGN, VESS_TYPE, TONNAGE, GRT, VESS_FLAG, VESS_OWNER, REMARKS)) 
@@ -93,7 +90,7 @@ if(param.apply_fml | param.drop_middle_names){
   
 }
 
-raw$prepd_name = indiv_split$name[match(raw$ENT_NUM, indiv_split$name)] # replace edited names
+raw$prepd_name[match(raw$ENT_NUM, indiv_split$name)] = indiv_split$name[match(raw$ENT_NUM, indiv_split$name)] # replace edited names
 rm(indiv_split)
 
 # Apply program filters
