@@ -9,7 +9,7 @@ require(httr, quietly = TRUE)
 require(assertthat, quietly = TRUE)
 
 # Grab data ----
-param.demo_mode = TRUE # demo run with degs and output analysis
+param.demo_mode = FALSE # demo run with degs and output analysis
 
 # Pull copies of current OFAC data-files, parse and prep
 if(param.demo_mode &
@@ -21,7 +21,6 @@ if(param.demo_mode &
   source("r-scripts/pull-parse-enrich_sdn-files.R", echo = TRUE)
   source("r-scripts/pull-parse-enrich_cons-files.R", echo = TRUE)
 }
-
 
 # Load prepared data
 load(file = "run-files/sdn_files_parsed.RData")
@@ -52,6 +51,7 @@ if(param.ignore_alt_names){
 }
 
 rm(list = c(ls(pattern = "\\.prim"), ls(pattern = "\\.alt")))
+raw$prepd_name = raw$SDN_NAME
 
 # Apply program filters
 # TODO ^
@@ -68,5 +68,11 @@ rm(list = c(ls(pattern = "\\.prim"), ls(pattern = "\\.alt")))
 # ... apply to [prepd_name]
 
 # Make Degradations----
+deg = list()
+source("r-scripts/degrade_basics.R", echo = TRUE)
+source("r-scripts/degrade_entities.R", echo = TRUE)
+# source("r-scripts/degrade_individuals.R") # TODO 
+# source("r-scripts/degrade_aircraft.R") # TODO 
+# source("r-scripts/degrade_vessels.R") # TODO 
 
 
