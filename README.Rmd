@@ -2,12 +2,18 @@
 title: 'README: wlf-sensitivity-analysis'
 author: "Nikolai Priser"
 date: "11/15/2021"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Summary 
+
+High-level summary.
+
+## Overview
 
 ### Project Directories
 
@@ -19,10 +25,157 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Execution Order
 
-1.  **pull-parse-enrich_sdn-files.R**\
+All scripts are located in '**proj/run-files/**' and are run through production-mode, unless explicitly noted. Non-production files are run *only* if **param.demo_mode = TRUE**.
+
+All scripts are called and executed in sequence by **'proj/run-files/*main.R'****.* Scripts inherent global variables; see in-line comments for global variables, inherited from *'*\_main.R' or predecessor scripts, for each script.
+
+'\_main.R' sets execution parameters, see **Parameter Definitions** section for additional details.
+
+1.  **pull-parse-enrich_sdn-files.R**
     Pulls OFAC SDN data, enriches geographic data and writes output to 'proj/run-files/'
 
-2.  **pull-parse-enrich_cons-files.R**\
+2.  **pull-parse-enrich_cons-files.R**
     Pulls OFAC CONS data, enriches geographic data and writes output to 'proj/run-files/'
 
-3.  
+3.   **degrade_basics.R**  
+    Executes degradation scenarios applicable for all types of names, as defined in [raw].[SDN_TYPE] field.
+
+4.  **degrade_entities.R   
+    **Executes degradation scenarios for only "entity" (e.g. businesses, organizations) type names, as defined in [raw].[SDN_TYPE] field. See **Degradation Scenarios** section, below.
+
+5.  **degrade_individuals.R**   
+    Executes degradation scenarios for only "individual" type names, as defined in [raw].[SDN_TYPE] field. See **Degradation Scenarios** section, below.
+
+6.  **degrade_vessels.R**   
+    Executes degradation scenarios for only "vessel" type names, as defined in [raw].[SDN_TYPE] field. See **Degradation Scenarios** section, below.
+
+7.  **degrade_aircraft.R**   
+    Executes degradation scenarios for only "aircraft" type names, as defined in [raw].[SDN_TYPE] field. See **Degradation Scenarios** section, below.
+
+8.  **demo_match-names.R** [demo script]  
+    Demo script to emulate a client watchlist screening model. Loads screening algorithms from '**r-scripts/testing_comparsion_algos.R**' - all algorithm functions should follow the following naming syntax: "comparison_algo\_\#\#" ensure that local functions are cleared following screening execution.  
+      
+    Compares deg$test_name values against watchlist wl_data$prepd_name values. Watchlist raw [SDN_NAME] values are ignored because proper comparison requires name-format matching between the two sets of names; accounting for user-defined degradation parameters such as first-middle-last individual name formatting and dropping of middle-name details.
+
+    -   Output Global Variables:
+
+        -   model_output: Dataframe of matching watchlist names; relates to [[deg]] tbl via common [deg_index] field. Many-to-one relationship between deg$deg_index and model_output matches.
+
+9.  **file-name.R** [demo script]  
+    Script description.
+
+10. **file-name.R** [demo script]  
+    Script description.
+
+11. **file-name.R** [demo script]  
+    Script description.
+
+### Parameter Definitions
+
+**\*\*TODO\*\*** Parameters currently reside in '\_main.R'; once finalized, parameters should be relocated to the project's R Environment File.
+
+-   **parameter_value  
+    **Parameter Description
+
+-   **parameter_value  
+    **Parameter Description
+
+-   **parameter_value  
+    **Parameter Description
+
+-   **parameter_value  
+    **Parameter Description
+
+-   **parameter_value  
+    **Parameter Description
+
+### Reference Files
+
+-   **File Name.ext  
+    **File Description
+
+-   **File Name.ext  
+    **File Description
+
+-   **File Name.ext  
+    **File Description
+
+-   **File Name.ext  
+    **File Description
+
+### Degradation Scenarios
+
+All scripts write output to named-list of dataframes called "deg", which is preallocated with zero-length in '\_main.R'; Each scenario gets a dedicated code-block and follows the following structure:
+
+1.  Copy prepared watchlist data to [[dat]], apply [SDN_TYPE] filtering if necessary.  
+    E.g. "*dat = raw; dat = dat %\>% filter(SDN_TYPE = 'type')* "  
+2.  Application degradation degraded logic on [prepd_name] to generate [test_name]
+3.  Comparison between [prepd_name] and [test_name] to remove any un-altered [test_name] values.
+4.  Calculation of degradation benchmark metrics (e.g. levenshtein string distance) between [prepd_name] and [test_name] values using degDistance() function; defined in '**helper-funcs.R**', see **Helper Function** section for more details.
+5.  Sampling of observations based on user-defined parameters via '*code*'; trims outliers and samples based on reduced [[dat]].[dist\_\*] metrics. using sample_degradations_simple() function; defined in '**helper-funcs.R**', see **Helper Function** section for more details.
+6.  Appending of the sampled dataframe to 'deg' via "*deg = c(deg, "scenario-name" = list(dat))*"; each list element *must* be named with the corresponding scenario name to comply with bind_rows() requirements in '\_main.R'.
+
+-   **Basics Degradations:** 'degrade_basics.R'  
+    Degradations applicable for all types of names, as defined in [raw].[SDN_TYPE] field.
+
+    -   **Scenario Name  
+        **Scenario Description
+
+    -   **Scenario Name  
+        **Scenario Description
+
+    -   **Scenario Name  
+        **Scenario Description
+
+    -   **Scenario Name  
+        **Scenario Description
+
+    -   **Scenario Name  
+        **Scenario Description
+
+-   **Entity Degradations:** ' degrade_entities.R'  
+    Degradations applicable for only "entity" (e.g. businesses, organizations) type names, as defined in [raw].[SDN_TYPE] field.
+
+    -   **Scenario Name  
+        **Scenario Description
+
+    -   **Scenario Name  
+        **Scenario Description
+
+    -   **Scenario Name  
+        **Scenario Description
+
+    -   **Scenario Name  
+        **Scenario Description
+
+-   **Individual Degradations:** file-name.R  
+    Degradations applicable for only "individual" type names, as defined in [raw].[SDN_TYPE] field.
+
+    -   **Scenario Name: NONE  
+        \*\*TODO\*\*** No scenarios developed.
+
+-   **Vessels Degradations:** file-name.R  
+    Degradations applicable for only "vessel" type names, as defined in [raw].[SDN_TYPE] field.
+
+    -   **Scenario Name: NONE  
+        \*\*TODO\*\*** No scenarios developed.
+
+-   **Aircrafts Degradations:** file-name.R  
+    Degradations applicable for only "aircraft" type names, as defined in [raw].[SDN_TYPE] field.
+
+    -   **Scenario Name: NONE  
+        \*\*TODO\*\*** No scenarios developed.
+
+### Helper Functions
+
+Global environment functions defined in 'script/path/'. Utilized throughout the execution pipeline.
+
+-   **splitName()**
+
+-   **prettyName()**
+
+-   **gramify()**
+
+-   **degDistance()**
+
+-   **sample_degradations_simple()**
