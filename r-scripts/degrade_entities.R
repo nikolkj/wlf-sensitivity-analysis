@@ -39,8 +39,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
-deg$scenario = "rm-biz-deg"
-deg = c(deg, list(dat)) 
+deg = c(deg, "rm-biz-deg" = list(dat)) 
 
 # Deg: Business Designation Synonym ----
 # ABOUT: Replaces business designation with defined synonym
@@ -117,8 +116,8 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
-deg$scenario = "syn-biz-deg"
-deg = c(deg, list(dat)) 
+
+deg = c(deg, "syn-biz-deg" = list(dat)) 
 
 # Deg: Business Designation Replacement ----
 # ABOUT: Replaces business designation with any other EXCEPT defined synonyms
@@ -196,6 +195,5 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
 
 
 # archive
-deg$scenario = "replace-biz-deg"
-deg = c(deg, list(dat)) 
+deg = c(deg, "replace-biz-deg" = list(dat)) 
 
