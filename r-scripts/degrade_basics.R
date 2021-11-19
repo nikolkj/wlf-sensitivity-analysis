@@ -28,8 +28,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
-deg$scenario = "concat"
-deg = c(deg, list(dat)) 
+deg = c(deg, "concat" = list(dat)) 
 
 # Deg: Sticky Tokens ----
 # ABOUT: Remove all spaces from the original name
@@ -66,8 +65,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
-deg$scenario = "sticky-tokens"
-deg = c(deg, list(dat)) 
+deg = c(deg, "sticky-tokens" = list(dat)) 
 
 # Deg: Symbol Stripping ----
 # ABOUT: Replaces alphabetic characters with visually similar symbolics
@@ -107,8 +105,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
-deg$scenario = "stripping"
-deg = c(deg, list(dat)) 
+deg = c(deg, "stripping" = list(dat)) 
 
 # Deg: Long Name Truncation ----
 # ABOUT: Truncate long-names to 35 characters
@@ -130,8 +127,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
-deg$scenario = "long-names"
-deg = c(deg, list(dat)) 
+deg = c(deg, "long-names" = list(dat)) 
 
 # Deg: Random Word Truncation ----
 # ABOUT: Randomly Truncates Tokens
@@ -204,8 +200,7 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
-deg$scenario = "rand-trunc"
-deg = c(deg, list(dat)) 
+deg = c(deg, "rand-trunc" = list(dat)) 
 
 # Deg: Random Token Drop ----
 # ABOUT: Drop random words from the name
@@ -289,5 +284,4 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
   dat[.,]
 
 # archive
-deg$scenario = "rand-drop"
-deg = c(deg, list(dat)) 
+deg = c(deg, "rand-drop" = list(dat)) 
