@@ -70,8 +70,8 @@ gramify = function(string_vec, ngrams = 3L, rolling = TRUE){
 # Calculate Distances ----
 # ABOUT: Calculates string distance metrics between two string vectors
 
-# prepd_name = dat$prepd_name # testing, do not run
-# test_name = dat$test_name # testing, do not run
+# prepd_name = dat$prepd_name[100] # testing, do not run
+# test_name = dat$test_name[100] # testing, do not run
 degDistance = function(prepd_name, test_name){
   # Levenshtein Distance Metrics
   dist_lev = stringdist::stringdist(a = prepd_name, b = test_name)
@@ -89,23 +89,33 @@ degDistance = function(prepd_name, test_name){
   dist_ngram_pcnt = round((dist_ngram/sapply(prepd_name.grams, length)), 4)
   
   # Phonetic Distance Metrics
+  # Apply phonetic approximations then compute distance between 
+  # ... phonetic representations.
+  # .... Assumes ACSII character-set only; if the non-OFAC lists are integrated
+  # .... additional normalization procedures should be applied 
+  # .... for UTF8-to-ASCII character transliteration before metaphone encodings
+  # .... are applied. 
   prepd_name.phon = str_split(string = prepd_name, pattern = "\\s+") %>%
-    lapply(., stringdist::phonetic) %>% 
+    lapply(., str_remove_all, pattern = "[^[A-z]]") %>% 
+    lapply(., phonics::metaphone) %>% 
     sapply(., paste, collapse = " ")
   
-  test_name.phon = str_split(string = prepd_name, pattern = "\\s+") %>%
-    lapply(., stringdist::phonetic) %>% 
+  test_name.phon = str_split(string = test_name, pattern = "\\s+") %>%
+    lapply(., str_remove_all, pattern = "[^[A-z]]") %>% 
+    lapply(., phonics::metaphone) %>% 
     sapply(., paste, collapse = " ")
   
-  dist_phon = stringdist::stringdist(a = prepd_name.phon, b = prepd_name.phon)
-  dist_phon_pcnt = round(dist_lev / nchar(prepd_name.phon), 4)
+  dist_phon = stringdist::stringdist(a = prepd_name.phon, b = test_name.phon)
+  dist_phon_pcnt = round(dist_phon / nchar(prepd_name.phon), 4)
   
   # TODO: Other Distance Metrics
   
   # Create Output Tibble
   output = tibble(dist_lev, dist_lev_pcnt,
                   dist_ngram, dist_ngram_pcnt,
-                  dist_phon, dist_phon_pcnt)
+                  dist_phon, dist_phon_pcnt
+                  # ... other metrics ...
+                  )
   
   return(output)
 }
