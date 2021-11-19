@@ -117,20 +117,23 @@ source("r-scripts/degrade_entities.R", echo = TRUE)
 # source("r-scripts/degrade_vessels.R") # TODO 
 
 
-deg = bind_rows(deg) 
-if(any(trimws(deg$test_name) = "")){
+deg = bind_rows(deg, .id = "scenario") 
+if(any(trimws(deg$test_name) == "")){
   warning("Heads up, some of your scenario produced empty-string degradations. They're being dropped.")
   deg = deg %>% 
-    fitler(trimws(test_name) != "")
+    filter(trimws(test_name) != "")
 } 
 
 deg = mutate(.data = deg,deg_index = row_number()) # index degradations
 
 # Write to Degradations to Input-file -----
-# ABOUT: Should be 
-
-
-# temp
+# ABOUT: Should be client application specific
+if(param.demo_mode){
+  write_rds(x = deg, file = "run-files/degradation_input_temp.rds")
+}else{
+  # TODO : Production Code
+  # ... client-application specific, defined by dedicated user-defined parameter
+}
 
   
 # Prep Data for Performance Expectation Modeling ----
@@ -154,7 +157,7 @@ deg = mutate(.data = deg,deg_index = row_number()) # index degradations
 # Model Performance Expectations ----
 # TODO ^ 
 
-# Simulate Model Output
+# Model Output ----
 # About: In production, there would be engine for parsing 
 # ... model output (e.g. from actimize or prime) 
 # .... matching inputs and outputs
@@ -162,10 +165,7 @@ deg = mutate(.data = deg,deg_index = row_number()) # index degradations
 # .... and staging data for sensitivity analysis
 #
 if(param.demo_mode){
-  
-  
-  
-  
+  source("r-scripts/demo_match-names.R")
   
 }else{
   # TODO : Production Parsing Functions/Scripts 
@@ -173,6 +173,7 @@ if(param.demo_mode){
 
 # Model Sensitivity ----
 if(param.demo_mode){
+  
   
 }else{
   # TODO : Production Analysis Functions/Scripts
