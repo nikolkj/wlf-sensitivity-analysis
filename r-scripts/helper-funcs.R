@@ -113,7 +113,7 @@ degDistance = function(prepd_name, test_name){
 # Sample Degradations ----
 # ABOUT: returns positional indices of observations to keep for sample 
 
-sample_degradations_simple = function(df, cut_off = 0.05, n_p_samples = 0.35){
+sample_degradations_simple = function(df, cut_off = 0.05, n_p_samples = 100){
   assertthat::is.number(cut_off)
   assertthat::assert_that(cut_off < .5, msg = "cut-off is applied to both ends of the distribution; must be < 0.5.")
   if(cut_off > 0.15){
