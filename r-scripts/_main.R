@@ -302,6 +302,10 @@ for(i in seq_along(deg$true_positive_match)){
 
 rm(wlf_ouput, matches) # clean-up
 
+# Make a snapshot to isolate from any vars
+# ... sensitivity analysis scripts
+save.image(file = "run-files/snapshot_integrated-datasets.Rdata")
+
 # Model Sensitivity ----
 # Summarizes and models WLF algorithm sensitivities
 if(param.demo_mode){
