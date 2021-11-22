@@ -122,25 +122,26 @@ degDistance = function(prepd_name, test_name){
 
 # Sample Degradations ----
 # ABOUT: returns positional indices of observations to keep for sample 
-
-sample_degradations_simple = function(df, n_p_samples = 100){
+sample_degradations_simple = function(df, n_p_samples = 300L){
+  df.dim = dim(df)
+  df$keep = seq_along(df[[1]]) # index
+  
   # generate random sample
   if(n_p_samples < 1){
     # interpret as percentage, based on pre cut-off count
-    keep = tibble(keep) %>% 
+    keep = df %>% 
       sample_frac(tbl = ., size = n_p_samples) %$% 
       keep
     
   }else{
     # interpret as count
     if(n_p_samples > df.dim[1]){n_p_samples = df.dim[1]}
-    keep = tibble(keep) %>% 
+    keep = df %>% 
       sample_n(tbl = ., size = n_p_samples) %$% 
       keep
   }
   
   return(keep)
-  
   
 }
 

@@ -1,7 +1,8 @@
 # ABOUT: Degradation Scenarios applicable to all names
 
-# Source Checks ----
-# TODO: 'header check' should be generalized if using more than just OFAC SDN and CONS lists
+# Reset Environment -----
+rm(list = ls())
+load("run-files/snapshot_prepared-data.Rdata")
 
 # Deg: Concatenations ----
 # ABOUT: Remove all spaces from the original name
@@ -49,6 +50,14 @@ dat$test_name = sapply(seq(1:length(dat$prepd_name)), function(x){
 
 # drop un-altered names
 dat.drop = which(dat$prepd_name == dat$test_name) 
+if(length(dat.drop) > 0L){
+  dat = dat[-dat.drop, ]
+}
+
+# drop instances where degradation is an empty string 
+# TODO ... debug root-cause and clean up degradation logic
+
+dat.drop = which(trimws(dat$test_name) == "")
 if(length(dat.drop) > 0L){
   dat = dat[-dat.drop, ]
 }
@@ -285,3 +294,9 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
 
 # archive
 deg = c(deg, "rand-drop" = list(dat)) 
+
+
+
+# SAVE OUTPUT DEGRADATIONS ----
+# only retain key output
+saveRDS(object = deg, file = "run-files/degradation-output_basics.rds")

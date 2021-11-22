@@ -1,5 +1,9 @@
 # ABOUT: Degradation Scenarios applicable to business names only
 
+# Reset Environment -----
+rm(list = ls())
+load("run-files/snapshot_prepared-data.Rdata")
+
 # Deg: Remove Business Designations ----
 # ABOUT: Remove all spaces from the original name
 dat = raw %>% filter(SDN_TYPE == "entity")
@@ -196,4 +200,8 @@ dat = select(.data = dat, grep(pattern = "dist", x = names(dat))) %>%
 
 # archive
 deg = c(deg, "replace-biz-deg" = list(dat)) 
+
+# SAVE OUTPUT DEGRADATIONS ----
+# only retain key output
+saveRDS(object = deg, file = "run-files/degradation-output_entities.rds")
 
