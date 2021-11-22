@@ -9,7 +9,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Summary 
+## Summary
 
 High-level summary.
 
@@ -31,30 +31,28 @@ All scripts are called and executed in sequence by **'proj/run-files/*main.R'***
 
 '\_main.R' sets execution parameters, see **Parameter Definitions** section for additional details.
 
-1.  **pull-parse-enrich_sdn-files.R**
-    Pulls OFAC SDN data, enriches geographic data and writes output to 'proj/run-files/'
+1.  **pull-parse-enrich_sdn-files.R** Pulls OFAC SDN data, enriches geographic data and writes output to 'proj/run-files/'
 
-2.  **pull-parse-enrich_cons-files.R**
-    Pulls OFAC CONS data, enriches geographic data and writes output to 'proj/run-files/'
+2.  **pull-parse-enrich_cons-files.R** Pulls OFAC CONS data, enriches geographic data and writes output to 'proj/run-files/'
 
-3.   **degrade_basics.R**  
+3.  **degrade_basics.R**  
     Executes degradation scenarios applicable for all types of names, as defined in [raw].[SDN_TYPE] field.
 
-4.  **degrade_entities.R   
+4.  **degrade_entities.R  
     **Executes degradation scenarios for only "entity" (e.g. businesses, organizations) type names, as defined in [raw].[SDN_TYPE] field. See **Degradation Scenarios** section, below.
 
-5.  **degrade_individuals.R**   
+5.  **degrade_individuals.R**  
     Executes degradation scenarios for only "individual" type names, as defined in [raw].[SDN_TYPE] field. See **Degradation Scenarios** section, below.
 
-6.  **degrade_vessels.R**   
+6.  **degrade_vessels.R**  
     Executes degradation scenarios for only "vessel" type names, as defined in [raw].[SDN_TYPE] field. See **Degradation Scenarios** section, below.
 
-7.  **degrade_aircraft.R**   
+7.  **degrade_aircraft.R**  
     Executes degradation scenarios for only "aircraft" type names, as defined in [raw].[SDN_TYPE] field. See **Degradation Scenarios** section, below.
 
 8.  **demo_match-names.R** [demo script]  
-    Demo script to emulate a client watchlist screening model. Loads screening algorithms from '**r-scripts/testing_comparsion_algos.R**' - all algorithm functions should follow the following naming syntax: "comparison_algo\_\#\#" ensure that local functions are cleared following screening execution.  
-      
+    Demo script to emulate a client watchlist screening model. Loads screening algorithms from '**r-scripts/testing_comparsion_algos.R**' - all algorithm functions should follow the following naming syntax: "comparison_algo\_\#\#" ensure that local functions are cleared following screening execution.
+
     Compares deg$test_name values against watchlist wl_data$prepd_name values. Watchlist raw [SDN_NAME] values are ignored because proper comparison requires name-format matching between the two sets of names; accounting for user-defined degradation parameters such as first-middle-last individual name formatting and dropping of middle-name details.
 
     -   Output Global Variables:
