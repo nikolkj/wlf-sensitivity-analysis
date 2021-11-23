@@ -21,6 +21,10 @@ perf_summary = deg %>%
 # ... PCA Projection of model output
 # Visualizations basd on PCA PC1 & PC2 projections of distance benchmark calculations
 # ... facet by scenario, coloring by test-outcome
+deg_pca = deg %>% 
+  group_by(scenario) %>% 
+  nest()
+
 deg_pca$pca = lapply(deg_pca$data, function(df){
  
   df = df %>% 
@@ -121,6 +125,16 @@ deg_model = deg %>%
   nest()
 
 # model each scenario
+deg_model$train_data = vector(mode = "list", length = nrow(deg_model))
+deg_model$test_data = vector(mode = "list", length = nrow(deg_model))
+deg_model$fit = vector(mode = "list", length = nrow(deg_model))
+deg_model$predict = vector(mode = "list", length = nrow(deg_model))
+deg_model$roc_curv = vector(mode = "list", length = nrow(deg_model))
+deg_model$roc_auc = vector(mode = "list", length = nrow(deg_model))
+deg_model$contingency = vector(mode = "list", length = nrow(deg_model))
+deg_model$accuracy = vector(mode = "list", length = nrow(deg_model))
+deg_model$mcc = vector(mode = "list", length = nrow(deg_model))
+
 for(i in seq_along(deg_model$scenario)){
   message(paste0("Modeling Scenario: ", deg_model$scenario[i]))
   
@@ -128,9 +142,12 @@ for(i in seq_along(deg_model$scenario)){
   dat$true_positive_match = factor(dat$true_positive_match, ordered = FALSE)
   
   # Create splits
-  dat_split = rsample::initial_split(data = dat, prop = 0.80, strata = true_positive_match)
+  dat_split = rsample::initial_split(data = dat, prop = 0.60, strata = true_positive_match)
   dat_train = rsample::training(dat_split)
   dat_test = rsample::testing(dat_split)
+  
+  deg_model$train_data[[i]] = dat_train # archive
+  deg_model$test_data[[i]] = dat_test # archive
   
   # Create Recipe
   dat_rec = dat_train %>% 
@@ -157,33 +174,166 @@ for(i in seq_along(deg_model$scenario)){
     add_model(dat_mdl_lda)
   
   # Fit Model
+  # ... just doing LDA for now
   dat_wlf.fit = parsnip::fit(object = dat_wlf, data = dat_train)
   dat_wlf.predict = predict(object = dat_wlf.fit, new_data = dat_test, type = "prob")
+  
+  deg_model$fit[[i]] = dat_wlf.fit # archive
   
   # Evaluate Model Performance
   dat_wlf.predict = dat_wlf.predict %>% 
     mutate(truth = dat_test$true_positive_match,
            predicted = .pred_TRUE > .pred_FALSE,
+           predicted = factor(predicted),
            deg_index = dat_test$deg_index,
            prepd_name = dat_test$prepd_name,
            test_name = dat_test$test_name
            ) %>% 
     select(deg_index, prepd_name, test_name, everything())
   
-  dat_wlf.predict %>% 
+  deg_model$predict[[i]] = dat_wlf.predict # archive
+  
+  deg_model$contingency[[i]]= dat_wlf.predict %>% # archive
     select(truth, predicted) %>% 
     table()
   
-  yardstick::roc_curve(dat_wlf.predict, truth, .pred_FALSE) %>% 
+  deg_model$accuracy[[i]] = yardstick::accuracy(data = dat_wlf.predict, truth, predicted) # archive
+  deg_model$mcc[[i]] = yardstick::mcc(data = dat_wlf.predict, truth, predicted) # archive
+  
+  deg_model$roc_curv[[i]] = yardstick::roc_curve(dat_wlf.predict, truth, .pred_FALSE) %>% # archive
     autoplot()
   
-  # ...
-  
-  # ...
-  
+  deg_model$roc_auc[[i]] = yardstick::roc_auc(dat_wlf.predict, truth, .pred_FALSE) # archive
   
 }
 
-
-
+# Modeling Client Expectations ----
 # Mcnemar Test between test-set and client feedback
+
+# Generate sample for review
+deg_expect = deg_model %>% 
+  select(scenario, data) %>% 
+  unnest(cols = c(data)) %>% 
+  select(scenario, deg_index, prepd_name, test_name, true_positive_match) %>%
+  group_by(scenario, true_positive_match) %>% 
+  sample_n(40) %>% 
+  arrange(deg_index) %>%
+  ungroup() %>%
+  mutate(client_expectation = NA)
+
+# drop model-output [true_positive_match] if not in demo-mode
+if(!param.demo_mode){
+  deg_expect = deg_expect %>% 
+    select(-true_positive_match)
+}
+
+# Write to File
+# ... to be given to client for evaluation
+split(deg_expect, deg_expect$scenario) %>% # create list of data-frames
+  writexl::write_xlsx(x = ., path = "run-files/scenario_expectations.xlsx")
+
+rm(deg_expect)
+
+if(param.demo_mode){
+  # copy to response directory if demo-mode
+  file.copy(from = "run-files/scenario_expectations.xlsx", 
+            to = "response-files/scenario_expectations-response-demo.xlsx")
+}
+
+# Read Client Response
+response_file = dir(path = "response-files/", pattern = "expectation", full.names = TRUE)
+response_file.info = file.info(response_file) %>% 
+  as_tibble() %>% 
+  mutate(path = response_file)
+
+# ... grab latest file
+response_file = response_file.info %>% 
+  slice(which.max(mtime)) %>% 
+  slice(1) %$%
+  path
+
+# ... read data
+response_file.sheets = readxl::excel_sheets(path = response_file)
+response_data = lapply(response_file.sheets, function(x){
+  readxl::read_excel(path = response_file, sheet = x)
+})
+
+response_data = response_data %>% 
+  bind_rows() %>% 
+  group_by(scenario) %>% 
+  nest()
+  
+# Simulate client response, Demo-mode ONLY
+if(param.demo_mode){
+  
+  # Simulate Client Feedback
+  # ... fit using established scenario model with 
+  # .... cutoff threshold > 0.50
+  for(i in seq_along(response_data$scenario)){
+    
+    # pull in historic metrics
+    response_data$data[[i]] = response_data$data[[i]] %>% 
+      left_join(x = .,
+                y = deg_model %>% 
+                  filter(scenario == response_data$scenario[i]) %>% 
+                  .$data %>% .[[1]] %>%
+                  select(deg_index, starts_with("dist_")),
+                by = "deg_index"
+                  )
+    # get model
+    mdl = deg_model$fit[[which(deg_model$scenario == response_data$scenario[i])]]
+    
+    # fit model
+    response_data$data[[i]]$client_expectation = predict(object = mdl,
+                                                                new_data = response_data$data[[i]], 
+                                                                type = "prob"
+                                                                ) %>%
+      mutate(prediction = .pred_TRUE > 0.80,
+             prediction = factor(prediction)) %$% 
+      prediction
+    
+    # remove historic metrics
+    response_data$data[[i]] = response_data$data[[i]] %>% 
+      select(-starts_with("dist_"))
+                                                            
+  }
+  
+}
+
+# Evaluate alignment between model performance and client expectations
+response_data$mcnemar = vector(mode = "list", length = nrow(response_data))
+response_data$conf_mat = vector(mode = "list", length = nrow(response_data))
+
+response_data$mcnemar = lapply(response_data$data, function(x) {
+  mcnemar.test(x = x$true_positive_match,
+               y = x$client_expectation)
+})
+
+response_data$conf_mat = lapply(response_data$data, function(x) {
+  table(
+    model_class = x$true_positive_match,
+    expected_class = x$client_expectation
+  )
+})
+
+response_data$p_value = sapply(response_data$mcnemar, function(x){x$p.value})
+perf_summary$testing_outcome_final = perf_summary$testing_outcome
+perf_summary = perf_summary %>% 
+  left_join(x = ., y = response_data %>% select(scenario, p_value),
+            by = "scenario") %>% 
+  # determine final disposition based on McNemar p.value results
+  mutate(testing_outcome_final = case_when(is.na(p_value) ~ testing_outcome_final,
+                                           p_value > 0.05  ~ "Sufficient",
+                                           TRUE ~ "Deficient")
+  ) %>% 
+  select(-p_value)
+
+perf_summary # print to console
+# TODO script output ...
+  
+
+# Modeling Exposure ----
+# Only applicable for scenarios where model performance is 
+# ... not aligned with management expectations;
+# Estimate the number of similar names to those resulting in 
+# ... no true-positive matches for affected scenarios;
