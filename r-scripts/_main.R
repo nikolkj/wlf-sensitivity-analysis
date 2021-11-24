@@ -18,16 +18,16 @@ require(assertthat, quietly = TRUE)
 param.demo_mode = TRUE # demo run with degs and output analysis
 
 # Grab data ----
-param.refesh_watchlists = TRUE # FALSE is ignored if RData files not found;
+param.refresh_watchlists = TRUE # FALSE is ignored if RData files not found;
 
 # Pull copies of current OFAC data-files, parse and prep
 # ... [param.refresh_watchlists] is IGNORED if demo-mode is enabled
 # ... unless the "run-files/" dir does not have any watchlist files.
 
 check_for_wldata = length(dir(path = "run-files/", pattern = "(_parsed.RData)")) > 1L # are there files?
-if(param.demo_mode){param.refesh_watchlists = FALSE} # overwrite if demo-mode.
+if(param.demo_mode){param.refresh_watchlists = FALSE} # overwrite if demo-mode.
 
-if(!check_for_wldata | param.refesh_watchlists){
+if(!check_for_wldata | param.refresh_watchlists){
   
   # pull fresh data
   # ... add additional pull-scripts as necessary
