@@ -5,7 +5,7 @@ rm(list = ls())
 load("run-files/snapshot_prepared-data.Rdata")
 
 # Deg: Remove Business Designations ----
-# ABOUT: Remove all spaces from the original name
+# TODO ABOUT: 
 dat = raw %>% filter(SDN_TYPE == "entity")
 
 # apply degradation
