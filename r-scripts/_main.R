@@ -36,8 +36,6 @@ if(!check_for_wldata | param.refresh_watchlists){
   
 }
 
-rm(check_for_wldata)
-
 # Load prepared data
 load(file = "run-files/sdn_files_parsed.RData")
 load(file = "run-files/cons_files_parsed.RData")
