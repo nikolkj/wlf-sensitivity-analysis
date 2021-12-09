@@ -1,0 +1,25 @@
+---
+title: "Minimal Sample Analysis"
+output: html_notebook
+---
+
+```{r, echo=FALSE}
+# Start-up
+# Packages ...
+suppressPackageStartupMessages(require(tidyverse, quietly = TRUE))
+suppressPackageStartupMessages(require(magrittr, quietly = TRUE))
+
+# Data ....
+load(file = "analysis-files/snapshot_integrated-datasets_min-sample.Rdata") # 500 samples per scenario run
+
+```
+
+### Objective
+
+Estimate the mininium samples necessary for first-round sensitivity analysis.
+
+-   Round 1: Applicable for all scenarios. Determine which scenarios are above / below **Sufficient** and **Deficient** thresholds as defined in "model_sensitivity.R" script; corresponding parameters are [param.perf_thld_high] and [param.perf_thld_low], with default values of 0.90 and 0.30.\
+    \
+    Should be minimal sample test, scenarios that don't fall into either of these groups should be re-tested at a high sample size to determine model performance aligns with management expecations.
+
+-   Round 2: Applicable for only scenarios that score between sufficient and deficient thresholds, with an initial outcome status of "To Be Determined". High sample re-testing to model and evaluate model performance.

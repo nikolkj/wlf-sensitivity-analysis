@@ -122,7 +122,7 @@ degDistance = function(prepd_name, test_name){
 
 # Sample Degradations ----
 # ABOUT: returns positional indices of observations to keep for sample 
-sample_degradations_simple = function(df, n_p_samples = 300L){
+sample_degradations_simple = function(df, n_p_samples = 500L){
   df.dim = dim(df)
   df$keep = seq_along(df[[1]]) # index
   
