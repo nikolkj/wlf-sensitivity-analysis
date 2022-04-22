@@ -176,12 +176,6 @@ cons.alt = cons.alt %>%
 # Export binary of output files ----
 cons.timestamp = Sys.time() # timestamp when data was sourced
 
-if(!dir.exists(paths = "run-files/")){
-  # check if landing dir exists
-  # ... if not, then create directory
-  dir.create(path = "run-files")
-}
-
 save(cons.timestamp, cons.prim, cons.add, cons.alt, program_catalog.cons, file = "run-files/cons_files_parsed.RData", version = 3)
 closeAllConnections()
 rm(list = ls()); invisible(gc())

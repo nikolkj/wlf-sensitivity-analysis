@@ -3,6 +3,7 @@
 
 # Start-up ----
 rm(list = ls()); invisible(gc());
+# set.seed(711)
 
 # Load Libraries
 suppressPackageStartupMessages(require(tidyverse, quietly = TRUE))
@@ -10,22 +11,22 @@ require(magrittr, quietly = TRUE)
 require(httr, quietly = TRUE)
 require(assertthat, quietly = TRUE)
 
-# Run in Demo-mode?
-# ... Watchlist data will not be refreshed if RData files found;
-# ... Simple matching algorithm will be used to simulate watchlist screening model
-# .... output;
-# ... TODO: placeholder for any other impacts                                                    
-param.demo_mode = TRUE # demo run with degs and output analysis
+"%nin%" = Negate("%in%")
 
 # Grab data ----
-param.refresh_watchlists = TRUE # FALSE is ignored if RData files not found;
+param.refresh_watchlists = FALSE # FALSE is ignored if RData files not found;
 
 # Pull copies of current OFAC data-files, parse and prep
 # ... [param.refresh_watchlists] is IGNORED if demo-mode is enabled
 # ... unless the "run-files/" dir does not have any watchlist files.
+  
+if(!dir.exists(paths = "run-files/")){
+  # check if landing dir exists
+  # ... if not, then create directory
+  dir.create(path = "run-files")
+}
 
 check_for_wldata = length(dir(path = "run-files/", pattern = "(_parsed.RData)")) > 1L # are there files?
-if(param.demo_mode){param.refresh_watchlists = FALSE} # overwrite if demo-mode.
 
 if(!check_for_wldata | param.refresh_watchlists){
   
@@ -35,6 +36,8 @@ if(!check_for_wldata | param.refresh_watchlists){
   source("r-scripts/pull-parse-enrich_cons-files.R", echo = TRUE)
   
 }
+
+rm(check_for_wldata)
 
 # Load prepared data
 load(file = "run-files/sdn_files_parsed.RData")

@@ -172,12 +172,6 @@ sdn.alt = sdn.alt %>%
 # Export binary of output files ----
 sdn.timestamp = Sys.time() # timestamp when data was sourced
 
-if(!dir.exists(paths = "run-files/")){
-  # check if landing dir exists
-  # ... if not, then create directory
-  dir.create(path = "run-files")
-}
-
 save(sdn.timestamp, sdn.prim, sdn.add, sdn.alt, program_catalog.sdn, file = "run-files/sdn_files_parsed.RData", version = 3)
 closeAllConnections()
 rm(list = ls()); invisible(gc())

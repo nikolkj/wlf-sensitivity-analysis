@@ -9,17 +9,100 @@ output: html_notebook
 suppressPackageStartupMessages(require(tidyverse, quietly = TRUE))
 suppressPackageStartupMessages(require(magrittr, quietly = TRUE))
 
-# Data ....
-load(file = "analysis-files/snapshot_integrated-datasets_min-sample.Rdata") # 500 samples per scenario run
+"%nin%" = Negate("%in%")
 
+# Data ....
+load(file = "../analysis-files/snapshot_integrated-datasets_min-sample.Rdata") # 500 samples per scenario run
+
+```
+
+```{r}
+rm(list = setdiff(ls(), c("deg"))) # keep only objects relevant for analysis
 ```
 
 ### Objective
 
-Estimate the mininium samples necessary for first-round sensitivity analysis.
+Estimate the minimum samples necessary for first-round sensitivity analysis.
 
 -   Round 1: Applicable for all scenarios. Determine which scenarios are above / below **Sufficient** and **Deficient** thresholds as defined in "model_sensitivity.R" script; corresponding parameters are [param.perf_thld_high] and [param.perf_thld_low], with default values of 0.90 and 0.30.\
     \
     Should be minimal sample test, scenarios that don't fall into either of these groups should be re-tested at a high sample size to determine model performance aligns with management expecations.
 
 -   Round 2: Applicable for only scenarios that score between sufficient and deficient thresholds, with an initial outcome status of "To Be Determined". High sample re-testing to model and evaluate model performance.
+
+### Analysis
+
+The following summarizes scenario performance at a sample size of (n=500).
+
+```{r, echo=FALSE}
+perf_summary = deg %>% 
+  group_by(scenario) %>% 
+  count(true_positive_match) %>% 
+  mutate(N = sum(n),
+         pcnt = n/sum(n)) %>% 
+  filter(true_positive_match) %>% 
+  arrange(desc(pcnt)) %>% 
+  select(scenario, N, pcnt) %>% 
+  rename(sample_size = N, 
+         match_rate = pcnt)
+  
+perf_summary
+
+```
+
+Scenarios with a 100% match rate were ignored.
+
+```{r}
+
+deg = deg %>%
+  filter(scenario %nin% perf_summary$scenario[which(perf_summary$match_rate == 1)])
+
+deg = deg %>% 
+  select(scenario, true_positive_match)
+
+```
+
+Match rates were bootstrapped at various key sample sizes to visualize the relationship between sample size and known match rates.
+
+```{r}
+n_range = seq(50, 450, by = 50)
+resamples = 50 # how many resamples?
+
+dat = list()
+
+for(j in seq_along(perf_summary$))
+
+```
+
+```{r}
+n_samples = seq(from = 25, to = 500, by = 25)
+resamples = 20
+
+temp = deg %>% filter(scenario == "stripping")
+temp2 = vector(mode = "list", length = 0)
+k = 0
+for(i in seq_along(n_samples)){
+  
+  for(j in seq_len(resamples)){
+  k = k + 1
+    
+  temp2[[k]] = temp %>% 
+  sample_n(size = n_samples[i]) %>% 
+  group_by(scenario) %>% 
+  count(true_positive_match) %>% 
+  mutate(pcnt = n/sum(n)) %>% 
+  mutate(N = n_samples[i]) %>%
+  filter(true_positive_match) %>% 
+  arrange(desc(pcnt))
+    
+  }
+  
+  
+  
+}
+
+```
+
+```{r}
+
+```

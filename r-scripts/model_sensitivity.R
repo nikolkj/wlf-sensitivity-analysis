@@ -53,6 +53,9 @@ deg_pca %>%
          scenario = factor(scenario)) %>% 
   ggplot(., aes(PC1, PC2, color = true_positive_match)) +
   geom_point(alpha = 0.5) +
+  theme(legend.position = "bottom") + 
+  labs(color = "Match?",
+       fill = "Match?") +
   facet_wrap(facets = . ~ scenario, scales = "free") 
 
 deg_pca %>% 
@@ -216,7 +219,7 @@ deg_expect = deg_model %>%
   unnest(cols = c(data)) %>% 
   select(scenario, deg_index, prepd_name, test_name, true_positive_match) %>%
   group_by(scenario, true_positive_match) %>% 
-  sample_n(40) %>% 
+  sample_n(9) %>% 
   arrange(deg_index) %>%
   ungroup() %>%
   mutate(client_expectation = NA)
@@ -331,6 +334,13 @@ perf_summary = perf_summary %>%
 perf_summary # print to console
 # TODO script output ...
   
+# Export for Visualization ---
+deg_export = bind_cols(deg, 
+                       deg_pca %>% select(-data) %>% unnest(pca)) %>% 
+  select(-`scenario...17`) %>% 
+  rename(scenario = `scenario...1`)
+
+writexl::write_xlsx(x = deg_export, path = "analysis-files/deg_export.xlsx")
 
 # Modeling Exposure ----
 # Only applicable for scenarios where model performance is 

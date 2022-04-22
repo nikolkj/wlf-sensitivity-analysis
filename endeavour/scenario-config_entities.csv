@@ -1,0 +1,8 @@
+scenario_id, scenario_label
+"rm-biz-deg", "Remove Business Designations"
+"syn-biz-deg", "Replace with Designation Synonyms"
+"replace-biz-deg", "Replace with any other Designation"
+"", ""
+"", ""
+"", ""
+"", ""
